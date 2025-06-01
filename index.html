@@ -1,0 +1,983 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+  <meta name="description" content="ストレスチェックで仕事や生活のストレスを評価。簡単な質問でメンタルヘルスをサポート。">
+  <meta name="keywords" content="ストレスチェック, メンタルヘルス, 職場ストレス">
+  <title>ストレスチェック</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/stresscheck/styles.css?v=2">
+  <style>
+    .hidden { display: none; }
+    .modal {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: white;
+      padding: 20px;
+      border: 1px solid #ccc;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+      z-index: 1000;
+    }
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.5);
+      z-index: 999;
+    }
+    .forgot-password {
+      margin-top: 10px;
+      font-size: 14px;
+    }
+    .forgot-password a {
+      color: #007bff;
+      text-decoration: none;
+    }
+    .forgot-password a:hover {
+      text-decoration: underline;
+    }
+    .notice {
+      background: #f8f9fa;
+      padding: 10px;
+      margin-bottom: 10px;
+      border-left: 4px solid #007bff;
+    }
+  </style>
+  <script src="/stresscheck/jspdf.umd.min.js"></script>
+  <script>
+    if (!window.jspdf) {
+      const s = document.createElement('script');
+      s.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.0/jspdf.umd.min.js';
+      document.head.appendChild(s);
+    }
+  </script>
+</head>
+
+<body>
+  <header>
+    <h1>ストレスチェック</h1>
+    <nav>
+      <a href="/stresscheck/index.html">ホーム</a>
+      <a href="/stresscheck/howto.html">使い方</a>
+      <a href="/stresscheck/about.html">このサイトについて</a>
+      <a href="/stresscheck/faq.html">FAQ</a>
+      <a href="/stresscheck/contact.html">お問い合わせ</a>
+      <a href="/stresscheck/tips.html">ストレス管理のヒント</a>
+      <a href="/stresscheck/privacy.html">プライバシーポリシー</a>
+      <a href="/stresscheck/evidence.html">科学的エビデンス</a>
+    </nav>
+  </header>
+
+  <main>
+    <section id="intro">
+      <h2>ストレスチェックを始めよう</h2>
+      <p>簡単な質問で、仕事や生活のストレスを評価できます。4月から翌年の3月までを一つの年度とし、同じ年度内では1回のみ提出できます。</p>
+      <div class="notice">
+        <strong>注意</strong>：個人名など個人情報は入力しないでください。企業から配布された匿名ID（例: STR001）を使用してください。本アプリは個人情報を一切収集せず、匿名性を確保します。ID管理および匿名性の説明は、労働安全衛生法に基づき企業様の責任で行ってください。<br>
+        <strong>パスワードについて</strong>：<br>
+        - 従業員：自分で設定したパスワード（数字4文字以上、英字4文字以上、合計8文字以上）を入力してください。個人情報（例: 氏名、生年月日）は絶対に含めないでください。<br>
+        - 管理者：初回ログイン時に設定したパスワード、または企業指定のパスワードを入力してください。<br>
+        - マスター：特別な認証パスワード（企業管理者向けではありません）。<br>
+        パスワードは個人情報と無関係で、本アプリは個人情報を収集しません。パスワード管理は企業様の責任で行ってください。詳細は<a href="/stresscheck/privacy.html">プライバシーポリシー</a>をご覧ください。
+      </div>
+      <form id="login-form">
+        <input type="text" id="company" placeholder="会社名" required aria-label="会社名">
+        <input type="password" id="password" placeholder="自分で設定したパスワード（従業員または管理者用）" required aria-label="従業員または管理者用パスワード">
+        <input type="text" id="username" placeholder="企業発行の匿名ID" required aria-label="企業発行の匿名ID">
+        <label><input type="checkbox" id="adminCheck"> 管理者ログイン（企業管理者用パスワードが必要です）</label><br>
+        <label><input type="checkbox" required> <a href="/stresscheck/privacy.html">プライバシーポリシーおよび免責事項に同意</a></label><br>
+        <button type="submit" class="submit-button">ログイン</button>
+        <div class="forgot-password">
+          <a href="#" id="forgotPasswordLink">パスワードを忘れた場合</a>
+          <p>管理者パスワードのリセットは、サポート（<a href="mailto:kohitsujiclinic2025@gmail.com">kohitsujiclinic2025@gmail.com</a>）へご連絡ください。従業員パスワードを忘れた場合は、企業の人事担当者またはサポートに「従業員用パスワードリセット」と明記してご連絡ください。</p>
+        </div>
+      </form>
+    </section>
+
+    <section id="checklist" class="hidden">
+      <h2>ストレスチェック</h2>
+      <div class="notice">注意：提出は年度内（4月〜翌3月）で1回のみです。修正は可能です。パスワードを他人と共有しないでください。</div>
+      <form id="stressForm">
+        <h3>A. 仕事について</h3>
+        <div id="sectionA"></div>
+        <h3>B. 最近の状態</h3>
+        <div id="sectionB"></div>
+        <h3>C. 周囲との関係</h3>
+        <div id="sectionC"></div>
+        <h3>D. 満足度について</h3>
+        <div id="sectionD"></div>
+        <button type="submit" class="submit-button">送信</button>
+      </form>
+      <div id="result" class="results"></div>
+      <button id="downloadPDF" class="submit-button" disabled>PDFとして保存</button>
+    </section>
+
+    <section id="adminPanel" class="hidden">
+      <h2>管理画面</h2>
+      <div class="notice">
+        <strong>注意</strong>：企業発行IDの対応表は貴社で厳重管理してください。IDに個人情報（例: 氏名）を含めると、個人情報保護法や労働安全衛生法に違反するリスクがあります。本アプリは個人情報を収集しません。<br>
+        詳細は<a href="/stresscheck/privacy.html#id-guide">匿名ID管理ガイド</a>をご覧ください。
+      </div>
+      <button id="filterHighStress" class="filter-button">高ストレス者のみ表示</button>
+      <div class="table-wrapper">
+        <div id="adminResults"></div>
+      </div>
+      <button id="exportCSV" class="submit-button">結果CSVダウンロード</button>
+      <button id="viewMapping" class="submit-button">IDマッピング表示</button>
+      <div id="mappingPanel" class="hidden">
+        <h3>システム生成IDと企業発行IDの対応表</h3>
+        <div id="mappingResults"></div>
+        <button id="exportMappingCSV" class="submit-button">マッピングCSVダウンロード</button>
+      </div>
+    </section>
+
+    <section id="adminMaster" class="hidden">
+      <h2>マスターログイン</h2>
+      <p>全会社の回答データおよび管理者パスワードを表示します（マッピングデータは各会社で管理）。</p>
+      <button id="filterHighStressMaster" class="filter-button">高ストレス者のみ表示</button>
+      <div class="table-wrapper">
+        <div id="masterResults"></div>
+      </div>
+      <button id="exportAllCSV" class="submit-button">結果CSVダウンロード</button>
+      <button id="viewAdminPasswords" class="submit-button">管理者パスワード一覧表示</button>
+      <div id="adminPasswordPanel" class="hidden">
+        <h3>管理者パスワード一覧</h3>
+        <div id="adminPasswordResults"></div>
+        <button id="exportAdminPasswordsCSV" class="submit-button">パスワード一覧CSVダウンロード</button>
+      </div>
+    </section>
+
+    <div id="authModal" class="hidden">
+      <div class="modal-overlay"></div>
+      <div class="modal">
+        <h3 id="authTitle">認証</h3>
+        <form id="authForm">
+          <input type="password" id="authPassword" placeholder="パスワード" required aria-label="パスワード">
+          <button type="submit" class="submit-button">認証</button>
+          <button type="button" id="cancelAuth" class="submit-button">キャンセル</button>
+        </form>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    <p>© 2025 ストレスチェックシステム | 運営：ストレスチェックチーム</p>
+    <p>
+      <a href="/stresscheck/index.html">ホーム</a> |
+      <a href="/stresscheck/howto.html">使い方</a> |
+      <a href="/stresscheck/about.html">このサイトについて</a> |
+      <a href="/stresscheck/faq.html">FAQ</a> |
+      <a href="/stresscheck/contact.html">お問い合わせ</a> |
+      <a href="/stresscheck/tips.html">ストレス管理のヒント</a> |
+      <a href="/stresscheck/privacy.html">プライバシーポリシー</a>
+      <a href="/stresscheck/evidence.html">科学的エビデンス</a>
+    </p>
+  </footer>
+  <script src="/stresscheck/utils.js"></script>
+  <script>
+  </script>
+  <script>
+    // Function to generate an anonymous ID
+    async function generateAnonymousID(company, username, password) {
+      const input = `${company}_${username}_${password}`;
+      try {
+        if (window.crypto && window.crypto.subtle) {
+          const msgBuffer = new TextEncoder().encode(input);
+          const hashBuffer = await window.crypto.subtle.digest('SHA-256', msgBuffer);
+          const hashArray = Array.from(new Uint8Array(hashBuffer));
+          const hash = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+          const companyPrefix = (company.slice(0, 3) || 'UNK').toUpperCase();
+          return `${companyPrefix}_${hash.slice(0, 8)}`;
+        }
+      } catch (e) {
+        console.error('generateAnonymousID crypto error:', e);
+      }
+      const companyPrefix = (company.slice(0, 3) || 'UNK').toUpperCase();
+      const randomNum = Math.floor(1000 + Math.random() * 9000);
+      return `${companyPrefix}_${randomNum}`;
+    }
+    // Function to hash a password
+    async function hashPassword(password) {
+      try {
+        if (window.crypto && window.crypto.subtle) {
+          const msgBuffer = new TextEncoder().encode(password);
+          const hashBuffer = await window.crypto.subtle.digest('SHA-256', msgBuffer);
+          const hashArray = Array.from(new Uint8Array(hashBuffer));
+          return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+        }
+      } catch (e) {
+        console.error('hashPassword crypto error:', e);
+      }
+      let hash = 0;
+      for (let i = 0; i < password.length; i++) {
+        hash = ((hash << 5) - hash) + password.charCodeAt(i);
+        hash |= 0;
+      }
+      return hash.toString(16);
+    }
+    // 入力サニタイズ関数
+    function sanitizeInput(input) {
+      const div = document.createElement('div');
+      div.textContent = input;
+      return div.innerHTML;
+    }
+
+    // CSVエクスポート関数
+    function exportToCSV(rows, filename) {
+      const csv = rows.map(r => r.join(",")).join("\n");
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+
+    // 産業医面談の選択を保存
+    function saveInterview() {
+      const interview = document.querySelector('input[name="interview"]:checked')?.value;
+      if (!interview) {
+        alert('面談の希望を選択してください。');
+        return;
+      }
+      const company = stressForm.dataset.company;
+      const anonymousID = stressForm.dataset.anonymousID;
+      const year = stressForm.dataset.year;
+      const interviewData = {
+        company,
+        anonymousID,
+        year: parseInt(year),
+        interview,
+        timestamp: new Date().toISOString()
+      };
+      localStorage.setItem(`interview_${company}_${anonymousID}_${year}`, JSON.stringify(interviewData));
+      alert('面談希望の選択を保存しました。');
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const loginForm = document.getElementById('login-form');
+      const checklist = document.getElementById('checklist');
+      const adminPanel = document.getElementById('adminPanel');
+      const adminMaster = document.getElementById('adminMaster');
+      const stressForm = document.getElementById('stressForm');
+      const resultDiv = document.getElementById('result');
+      const sectionA = document.getElementById('sectionA');
+      const sectionB = document.getElementById('sectionB');
+      const sectionC = document.getElementById('sectionC');
+      const sectionD = document.getElementById('sectionD');
+      const adminResults = document.getElementById('adminResults');
+      const masterResults = document.getElementById('masterResults');
+      const mappingPanel = document.getElementById('mappingPanel');
+      const mappingResults = document.getElementById('mappingResults');
+      const adminPasswordPanel = document.getElementById('adminPasswordPanel');
+      const adminPasswordResults = document.getElementById('adminPasswordResults');
+      const authModal = document.getElementById('authModal');
+      const authForm = document.getElementById('authForm');
+      const authTitle = document.getElementById('authTitle');
+      const forgotPasswordLink = document.getElementById('forgotPasswordLink');
+
+      // 質問データ（厚生労働省57項目ベース）
+      const A_questions = [
+        "非常にたくさんの仕事をしなければならない",
+        "時間内に仕事が処理しきれない",
+        "一生懸命働かなければならない",
+        "かなり注意を集中する必要がある",
+        "高度の知識や技術が必要なむずかしい仕事だ",
+        "勤務時間中はいつも仕事のことを考えていなければならない",
+        "からだを大変よく使う仕事だ",
+        "自分のペースで仕事ができる",
+        "自分で仕事の順番・やり方を決めることができる",
+        "職場の仕事の方針に自分の意見を反映できる",
+        "自分の技能や知識を仕事で使うことが少ない",
+        "私の部署内で意見のくい違いがある",
+        "私の部署と他の部署とはうまが合わない",
+        "私の職場の雰囲気は友好的である",
+        "私の職場の作業環境（騒音、照明、温度、換気など）はよくない",
+        "仕事の内容は自分にあっている",
+        "働きがいのある仕事だ"
+      ];
+      const B_questions = [
+        "活気がわいてくる",
+        "元気がいっぱいだ",
+        "生き生きする",
+        "怒りを感じる",
+        "内心腹立たしい",
+        "イライラしている",
+        "ひどく疲れた",
+        "へとへとだ",
+        "だるい",
+        "気がはりつめている",
+        "不安だ",
+        "落着かない",
+        "ゆううつだ",
+        "何をするのも面倒だ",
+        "物事に集中できない",
+        "気分が晴れない",
+        "仕事が手につかない",
+        "悲しいと感じる",
+        "めまいがする",
+        "体のふしぶしが痛む",
+        "頭が重かったり頭痛がする",
+        "首筋や肩がこる",
+        "腰が痛い",
+        "目が疲れる",
+        "動悸や息切れがする",
+        "胃腸の具合が悪い",
+        "食欲がない",
+        "便秘や下痢をする",
+        "よく眠れない"
+      ];
+      const C_questions = [
+        "上司（気軽に話ができますか）",
+        "職場の同僚（気軽に話ができますか）",
+        "配偶者、家族、友人等（気軽に話ができますか）",
+        "上司（困った時に頼りになりますか）",
+        "職場の同僚（困った時に頼りになりますか）",
+        "配偶者、家族、友人等（困った時に頼りになりますか）",
+        "上司（個人的な問題を相談したらきいてくれますか）",
+        "職場の同僚（個人的な問題を相談したらきいてくれますか）",
+        "配偶者、家族、友人等（個人的な問題を相談したらきいてくれますか）"
+      ];
+      const D_questions = ["仕事に満足だ", "家庭生活に満足だ"];
+
+      // グローバルスコープで状態管理
+      let stressResult = {};
+      let currentCompany = '';
+      let authMode = '';
+      let adminCSVRows = [];
+
+      // 質問描画関数
+      function renderQuestions(section, questions, prefix, labels) {
+        section.innerHTML = '';
+        questions.forEach((q, idx) => {
+          const div = document.createElement('div');
+          div.className = 'question';
+          const qNum = idx + 1;
+          div.innerHTML = `<p>${sanitizeInput(q)}</p><div class="options">` +
+            labels.map((label, i) =>
+              `<label><input type="radio" name="${prefix}${qNum}" value="${i+1}" required aria-label="${label}">${label}</label>`
+            ).join('') + `</div>`;
+          section.appendChild(div);
+        });
+      }
+
+      // 保存データ復元関数
+      function restoreFormData(data) {
+        try {
+          Object.keys(data).forEach(key => {
+            const radio = document.querySelector(`input[name="${key}"][value="${data[key]}"]`);
+            if (radio) radio.checked = true;
+          });
+        } catch (e) {
+          console.error('フォームデータ復元エラー:', e);
+          alert('フォームデータの復元に失敗しました。');
+        }
+      }
+
+      // パスワード忘れリンク処理
+      forgotPasswordLink.addEventListener('click', (e) => {
+        e.preventDefault();
+        const company = sanitizeInput(document.getElementById('company').value.trim()) || '未入力';
+        const subject = encodeURIComponent(`ストレスチェックシステム：管理者パスワードリセット依頼（${company}）`);
+        const body = encodeURIComponent(`以下の会社名で管理者パスワードのリセットを依頼します。\n\n会社名: ${company}\n\n詳細をご連絡ください。`);
+        window.location.href = `mailto:kohitsujiclinic2025@gmail.com?subject=${subject}&body=${body}`;
+      });
+
+      // フォーム自動保存
+      stressForm.addEventListener('change', () => {
+        const formData = new FormData(stressForm);
+        const answerData = {};
+        for (let [key, value] of formData.entries()) {
+          answerData[key] = value;
+        }
+        localStorage.setItem('autosave', JSON.stringify(answerData));
+      });
+
+      // ストレスチェック送信処理
+      stressForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        try {
+          const formData = new FormData(stressForm);
+          let totalA = 0, totalB = 0, totalC = 0, totalD = 0;
+          for (let [key, value] of formData.entries()) {
+            let score = parseInt(value);
+            const section = key.charAt(0);
+            const qNum = parseInt(key.slice(1));
+
+            // A領域の逆転項目: 1～7, 11～13, 15
+            if (section === 'A' && [1,2,3,4,5,6,7,11,12,13,15].includes(qNum)) {
+              score = 5 - score;
+            }
+
+            // B領域の逆転項目: 1～3
+            if (section === 'B' && [1,2,3].includes(qNum)) {
+              score = 5 - score;
+            }
+
+            if (section === 'A') totalA += score;
+            else if (section === 'B') totalB += score;
+            else if (section === 'C') totalC += score;
+            else if (section === 'D') totalD += score;
+          }
+
+          let evaluation = "", highStressFlag = false, highStressReason = "";
+          if (totalB >= 77) {
+            highStressReason = "最近の心身の状態（B項目）の合計が77点以上で、ストレスが高い状態です。";
+            evaluation = `<div class="high-stress-warning">高ストレス判定：${highStressReason}</div>`;
+            highStressFlag = true;
+          } else if ((totalA + totalC) >= 76 && totalB >= 63) {
+            highStressReason = "仕事や人間関係（A+C項目）の合計が76点以上、かつ心身の状態（B項目）が63点以上で、ストレスが高い状態です。";
+            evaluation = `<div class="high-stress-warning">高ストレス判定：${highStressReason}</div>`;
+            highStressFlag = true;
+          }
+
+          stressResult = { totalA, totalB, totalC, totalD, highStressFlag, highStressReason };
+
+          let guidance = "";
+          let advice = "";
+          if (highStressFlag) {
+            guidance = `<p>以下の理由で、産業医との面談をおすすめします。面談はあなたのメンタルヘルスをサポートし、職場環境の改善に役立ちます。</p>` +
+                      `<div class="interview-selection">` +
+                      `<p>産業医面談を希望しますか？</p>` +
+                      `<label><input type="radio" name="interview" value="希望する" required> 希望する</label>` +
+                      `<label><input type="radio" name="interview" value="希望しない" required> 希望しない</label>` +
+                      `<button class="submit-button" onclick="saveInterview()">保存</button>` +
+                      `</div>`;
+            advice = `<div class="advice-section">` +
+                     `<h3>あなたへのアドバイス</h3>` +
+                     `<ul>` +
+                     `<li>ストレスが高い状態です。産業医や専門家に相談することで、具体的な改善策が見つかります。</li>` +
+                     `<li>十分な休息やリラックスできる時間を意識的に確保しましょう。</li>` +
+                     `<li>職場での負担や人間関係について、上司や同僚とオープンに話す機会を検討してください。</li>` +
+                     `</ul>` +
+                     `</div>`;
+          } else {
+            advice = `<div class="advice-section">` +
+                     `<h3>あなたへのアドバイス</h3>` +
+                     `<ul>` +
+                     `<li>現在のストレス状態は良好です。引き続き健康的な生活習慣を維持しましょう。</li>` +
+                     `<li>定期的なストレスチェックで、変化に早めに気づくことが大切です。</li>` +
+                     `<li>職場やプライベートでのバランスを保つために、趣味や運動を取り入れるのもおすすめです。</li>` +
+                     `</ul>` +
+                     `</div>`;
+          }
+
+          const scoreTable = `<table>` +
+                            `<tr><th>項目</th><th>あなたのスコア</th><th>基準値</th></tr>` +
+                            `<tr><td>仕事（A項目）</td><td>${totalA}点</td><td>高いほど仕事の負担が多い</td></tr>` +
+                            `<tr><td>心身の状態（B項目）</td><td>${totalB}点</td><td>77点以上で高ストレス</td></tr>` +
+                            `<tr><td>人間関係（C項目）</td><td>${totalC}点</td><td>低いほど支援が少ない</td></tr>` +
+                            `<tr><td>満足度（D項目）</td><td>${totalD}点</td><td>低いほど不満が多い</td></tr>` +
+                            `</table>`;
+
+          const explanation = `<h3>結果の解説</h3>` +
+                             `<ul>` +
+                             `<li><strong>仕事（A項目）</strong>：仕事の負担や裁量を評価。高いスコアは仕事のストレスが多いことを示します。</li>` +
+                             `<li><strong>心身の状態（B項目）</strong>：心や体の健康状態。高いスコアはストレス症状が強いことを示します。</li>` +
+                             `<li><strong>人間関係（C項目）</strong>：上司や同僚、家族からの支援。低いスコアは孤立感が強いことを示します。</li>` +
+                             `<li><strong>満足度（D項目）</strong>：仕事や生活の満足度。低いスコアは不満が多いことを示します。</li>` +
+                             `</ul>`;
+
+          const idInfo = `<p>あなたの匿名ID: ${stressForm.dataset.username || ''}</p>`;
+          resultDiv.innerHTML = `${idInfo}${evaluation}${scoreTable}${guidance}${explanation}${advice}`;
+
+          const data = {
+            company: stressForm.dataset.company,
+            anonymousID: stressForm.dataset.anonymousID,
+            username: stressForm.dataset.username,
+            year: parseInt(stressForm.dataset.year),
+            totalA,
+            totalB,
+            totalC,
+            totalD,
+            highStress: highStressFlag,
+            highStressReason,
+            timestamp: new Date().toISOString()
+          };
+          localStorage.setItem(`stress_${data.company}_${data.anonymousID}_${data.year}`, JSON.stringify(data));
+
+          localStorage.removeItem('autosave');
+          // PDFボタンを有効化
+          document.getElementById('downloadPDF').disabled = false;
+        } catch (e) {
+          console.error('フォーム送信エラー:', e);
+          alert('データの送信に失敗しました。もう一度お試しください。');
+        }
+      });
+
+      // ログイン処理（個人情報チェック含む）
+      loginForm.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        try {
+          const company = sanitizeInput(document.getElementById('company').value.trim());
+          const password = document.getElementById('password').value.trim();
+          const username = sanitizeInput(document.getElementById('username').value.trim());
+          const isAdmin = document.getElementById('adminCheck').checked;
+
+          // 個人情報チェック
+          const personalInfoPattern = /(yamada|suzuki|tanaka|name|birth|date|\d{4}-\d{2}-\d{2})/i;
+          if (personalInfoPattern.test(password)) {
+            alert('パスワードに個人情報（例: 氏名、生年月日）を含めないでください。');
+            return;
+          }
+
+          // マスターログイン
+          if (company === 'master' && password === 'masterpass') {
+            loginForm.classList.add('hidden');
+            adminMaster.classList.remove('hidden');
+            loadAllData();
+            return;
+          }
+
+          const passwordPattern = /^(?=(?:.*\d){4,})(?=(?:.*[a-zA-Z]){4,}).{8,}$/;
+          if (!isAdmin && !passwordPattern.test(password)) {
+            alert("パスワードは数字4文字以上・英字4文字以上を含み、合計8文字以上である必要があります。");
+            return;
+          }
+          if (!company) {
+            alert("会社名を入力してください。");
+            return;
+          }
+          if (!isAdmin && !username) {
+            alert("企業発行の匿名IDを入力してください。例: STR001");
+            return;
+          }
+
+          if (isAdmin) {
+            const savedPass = localStorage.getItem(`adminpass_${company}`);
+            if (!savedPass) {
+              const hashed = await hashPassword(password);
+              localStorage.setItem(`adminpass_${company}`, hashed);
+              localStorage.setItem(`adminpass_timestamp_${company}`, new Date().toISOString());
+              alert("管理者パスワードを新規登録しました。次回からこのパスワードが必要です。");
+              loginForm.classList.add('hidden');
+              adminPanel.classList.remove('hidden');
+              currentCompany = company;
+              loadAdminData(company);
+            } else {
+              const hashedInput = await hashPassword(password);
+              if (hashedInput === savedPass) {
+                loginForm.classList.add('hidden');
+                adminPanel.classList.remove('hidden');
+                currentCompany = company;
+                loadAdminData(company);
+              } else {
+                alert("管理者パスワードが違います。");
+                return;
+              }
+            }
+          } else {
+            const anonymousID = await generateAnonymousID(company, username, password);
+            const mappingData = {
+              company,
+              username,
+              anonymousID,
+              timestamp: new Date().toISOString()
+            };
+            localStorage.setItem(`mapping_${company}_${anonymousID}`, JSON.stringify(mappingData));
+
+            const today = new Date();
+            const fiscalYear = today.getMonth() >= 3 ? today.getFullYear() : today.getFullYear() - 1;
+            const submissionKey = `stress_${company}_${anonymousID}_${fiscalYear}`;
+            const existingSubmission = localStorage.getItem(submissionKey);
+            if (existingSubmission) {
+              const confirmEdit = confirm('ストレスチェックを受けられるのは年に一度までです。すでに受けた内容を修正しますか？');
+              if (!confirmEdit) {
+                return;
+              }
+              localStorage.setItem('autosave', existingSubmission);
+            }
+
+            loginForm.classList.add('hidden');
+            checklist.classList.remove('hidden');
+            currentCompany = company;
+            renderQuestions(sectionA, A_questions, 'A', ['そうだ', 'まあそうだ', 'やや違う', '違う']);
+            renderQuestions(sectionB, B_questions, 'B', ['ほとんどなかった', 'ときどきあった', 'しばしばあった', 'ほとんどいつもあった']);
+            renderQuestions(sectionC, C_questions, 'C', ['非常に', 'かなり', '多少', '全くない']);
+            renderQuestions(sectionD, D_questions, 'D', ['満足', 'まあ満足', 'やや不満足', '不満足']);
+            stressForm.dataset.company = company || '不明';
+            stressForm.dataset.anonymousID = anonymousID || '不明';
+            stressForm.dataset.username = username || '不明';
+            stressForm.dataset.year = fiscalYear.toString() || '不明';
+
+            if (existingSubmission) {
+              const savedAnswers = JSON.parse(existingSubmission);
+              restoreFormData(savedAnswers);
+            }
+          }
+        } catch (e) {
+          console.error('ログインエラー:', e);
+          alert('ログインに失敗しました。もう一度お試しください。');
+        }
+      });
+
+      // PDF出力処理
+      document.getElementById('downloadPDF').addEventListener('click', () => {
+        try {
+          // jsPDFライブラリチェック
+          if (!window.jspdf || !window.jspdf.jsPDF) throw new Error('jsPDFライブラリが読み込まれていません。ネットワークを確認し、ページを再読み込みしてください。');
+          // データチェック
+          if (!stressResult || !Object.keys(stressResult).length) throw new Error('ストレスチェックを完了してください。送信ボタンを押して結果を確認してください。');
+          if (!stressForm.dataset.company || !stressForm.dataset.anonymousID || !stressForm.dataset.username || !stressForm.dataset.year)
+            throw new Error('ログイン情報が不完全です。再度ログインしてください。');
+          // フォントチェック（日本語対応）
+          const { jsPDF } = window.jspdf;
+          const doc = new jsPDF({
+            orientation: 'portrait',
+            unit: 'mm',
+            format: 'a4'
+          });
+          const company = stressForm.dataset.company || '不明';
+          const userID = stressForm.dataset.username || '不明';
+          const year = stressForm.dataset.year || '不明';
+          // 日本語フォント設定
+          doc.setFont('helvetica', 'normal');
+          doc.setFontSize(16);
+          doc.text(`ストレスチェック結果 (${company} - ${userID} - ${year}年度)`, 10, 10);
+          doc.setFontSize(12);
+          doc.text('あなたのスコア', 10, 20);
+          // テーブル生成
+          doc.autoTable({
+            startY: 25,
+            head: [['項目', 'スコア', '基準値']],
+            body: [
+              ['仕事（A項目）', `${stressResult.totalA || 0}点`, '高いほど仕事の負担が多い'],
+              ['心身の状態（B項目）', `${stressResult.totalB || 0}点`, '77点以上で高ストレス'],
+              ['人間関係（C項目）', `${stressResult.totalC || 0}点`, '低いほど支援が少ない'],
+              ['満足度（D項目）', `${stressResult.totalD || 0}点`, '低いほど不満が多い']
+            ],
+            styles: { font: 'helvetica', fontSize: 10 },
+            headStyles: { fillColor: [200, 200, 200] }
+          });
+          let yPos = doc.lastAutoTable.finalY + 10;
+          if (stressResult.highStressFlag) {
+            doc.setTextColor(255, 0, 0);
+            doc.setFont('helvetica', 'bold');
+            doc.text(`高ストレス判定：${stressResult.highStressReason || ''}`, 10, yPos);
+            yPos += 10;
+            doc.setTextColor(0);
+            doc.setFont('helvetica', 'normal');
+            doc.text('産業医との面談をおすすめします。', 10, yPos);
+            yPos += 10;
+          } else {
+            doc.text('現在のストレス状態は良好です。', 10, yPos);
+            yPos += 10;
+          }
+          doc.text('あなたへのアドバイス', 10, yPos);
+          yPos += 5;
+          const adviceText = stressResult.highStressFlag
+            ? `- ストレスが高い状態です。産業医や専門家に相談しましょう。\n` +
+              `- 十分な休息やリラックスできる時間を確保してください。\n` +
+              `- 職場での負担や人間関係について、上司や同僚と話す機会を検討してください。`
+            : `- 現在のストレス状態は良好です。健康的な生活習慣を維持しましょう。\n` +
+              `- 定期的なストレスチェックで、変化に早めに気づくことが大切です。\n` +
+              `- 職場やプライベートでのバランスを保つために、趣味や運動を取り入れるのもおすすめです。`;
+          doc.text(adviceText, 10, yPos, { maxWidth: 190 });
+          yPos += 30;
+          doc.text('結果の解説', 10, yPos);
+          yPos += 5;
+          const explanationText = `- 仕事（A項目）：仕事の負担や裁量を評価。高いスコアは仕事のストレスが多いことを示します。\n` +
+                                 `- 心身の状態（B項目）：心や体の健康状態。高いスコアはストレス症状が強いことを示します。\n` +
+                                 `- 人間関係（C項目）：上司や同僚、家族からの支援。低いスコアは孤立感が強いことを示します。\n` +
+                                 `- 満足度（D項目）：仕事や生活の満足度。低いスコアは不満が多いことを示します。`;
+          doc.text(explanationText, 10, yPos, { maxWidth: 190 });
+          doc.save(`${company}_${userID}_${year}_stress_check.pdf`, { returnPromise: true })
+            .then(() => alert('PDFをダウンロードしました。'))
+            .catch(e => alert('PDFダウンロードに失敗しました: ' + e.message));
+        } catch (e) {
+          console.error('PDF生成エラー:', e);
+          alert('PDF生成に失敗しました。詳細: ' + e.message);
+        }
+      });
+
+      // 管理者データ読み込み
+      function loadAdminData(company, highStressOnly = false) {
+        try {
+          let html = "<table border='1' style='width:100%;border-collapse:collapse;'>" +
+                     "<tr><th>システム生成ID</th><th>年度</th><th>A合計</th><th>B合計</th><th>C合計</th><th>D合計</th><th>高ストレス</th><th>高ストレス理由</th><th>回答日時</th></tr>";
+          let dataList = [];
+          for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (key.startsWith(`stress_${company}_`)) {
+              const item = JSON.parse(localStorage.getItem(key));
+              if (!highStressOnly || item.highStress) {
+                dataList.push(item);
+              }
+            }
+          }
+
+          dataList.sort((a, b) => b.year - a.year || b.totalB - a.totalB);
+
+          adminCSVRows = [["システム生成ID", "年度", "A合計", "B合計", "C合計", "D合計", "高ストレス", "高ストレス理由", "回答日時"]];
+
+          for (const item of dataList) {
+            const highStress = item.highStress ? '<span class="high-stress">はい</span>' : 'いいえ';
+            html += `<tr><td>${item.anonymousID || ""}</td><td>${item.year}</td><td>${item.totalA}</td><td>${item.totalB}</td><td>${item.totalC}</td><td>${item.totalD}</td><td>${highStress}</td><td>${item.highStressReason || ''}</td><td>${item.timestamp}</td></tr>`;
+            adminCSVRows.push([item.anonymousID || '', item.year, item.totalA, item.totalB, item.totalC, item.totalD, highStress.replace(/<[^>]+>/g, ''), item.highStressReason || '', item.timestamp]);
+          }
+          html += "</table>";
+
+          html += "<h3>年度ごとの比較</h3>";
+          const anonymousIDs = [...new Set(dataList.map(item => item.anonymousID))];
+          for (const id of anonymousIDs) {
+            const userData = dataList.filter(item => item.anonymousID === id).sort((a, b) => a.year - b.year);
+            if (userData.length > 1) {
+              html += `<h4>${id}</h4>`;
+              html += "<table border='1' style='width:100%;border-collapse:collapse;'>" +
+                      "<tr><th>年度</th><th>A合計</th><th>B合計</th><th>C合計</th><th>D合計</th><th>高ストレス</th></tr>";
+              for (const item of userData) {
+                const highStress = item.highStress ? '<span class="high-stress">はい</span>' : 'いいえ';
+                html += `<tr><td>${item.year}</td><td>${item.totalA}</td><td>${item.totalB}</td><td>${item.totalC}</td><td>${item.totalD}</td><td>${highStress}</td></tr>`;
+              }
+              html += "</table>";
+            }
+          }
+
+          adminResults.innerHTML = html;
+
+          document.getElementById('exportCSV').onclick = () => {
+            try {
+              exportToCSV(adminCSVRows, `${company}_stress_check_results.csv`);
+            } catch (e) {
+              console.error('CSVエクスポートエラー:', e);
+              alert('CSVのエクスポートに失敗しました。');
+            }
+          };
+        } catch (e) {
+          console.error('管理者データ読み込みエラー:', e);
+          alert('データの読み込みに失敗しました。');
+        }
+      }
+
+      // マッピングデータ読み込み
+      function loadMappingData(company) {
+        try {
+          let html = "<table border='1' style='width:100%;border-collapse:collapse;'>" +
+                     "<tr><th>システム生成ID</th><th>企業発行ID</th><th>登録日時</th></tr>";
+          let dataList = [];
+          for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (key.startsWith(`mapping_${company}_`)) {
+              const item = JSON.parse(localStorage.getItem(key));
+              dataList.push(item);
+            }
+          }
+
+          dataList.sort((a, b) => a.timestamp.localeCompare(b.timestamp));
+
+          for (const item of dataList) {
+            html += `<tr><td>${item.anonymousID}</td><td>${item.username}</td><td>${item.timestamp}</td></tr>`;
+          }
+          html += "</table>";
+
+          mappingResults.innerHTML = html;
+          mappingPanel.classList.remove('hidden');
+
+          document.getElementById('exportMappingCSV').onclick = async () => {
+            authModal.classList.remove('hidden');
+            authTitle.textContent = '管理者パスワード認証（マッピングCSVエクスポート）';
+            authMode = 'exportMappingCSV';
+            authForm.dataset.company = company;
+          };
+        } catch (e) {
+          console.error('マッピングデータ読み込みエラー:', e);
+          alert('マッピングデータの読み込みに失敗しました。');
+        }
+      }
+
+      // 管理者パスワード読み込み
+      function loadAdminPasswords() {
+        try {
+          let html = "<table border='1' style='width:100%;border-collapse:collapse;'>" +
+                     "<tr><th>会社名</th><th>管理者パスワード（ハッシュ）</th><th>最終更新日時</th></tr>";
+          let passwordList = [];
+          for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (key.startsWith('adminpass_')) {
+              const company = key.replace('adminpass_', '');
+              const passwordHash = localStorage.getItem(key);
+              const timestamp = localStorage.getItem(`adminpass_timestamp_${company}`) || '不明';
+              passwordList.push({ company, passwordHash, timestamp });
+            }
+          }
+
+          passwordList.sort((a, b) => a.company.localeCompare(b.company));
+
+          for (const item of passwordList) {
+            html += `<tr><td>${item.company}</td><td>${item.passwordHash}</td><td>${item.timestamp}</td></tr>`;
+          }
+          html += "</table>";
+
+          adminPasswordResults.innerHTML = html;
+          adminPasswordPanel.classList.remove('hidden');
+
+          document.getElementById('exportAdminPasswordsCSV').onclick = () => {
+            authModal.classList.remove('hidden');
+            authTitle.textContent = 'マスターパスワード認証（パスワード一覧CSVエクスポート）';
+            authMode = 'exportAdminPasswordsCSV';
+          };
+        } catch (e) {
+          console.error('管理者パスワード読み込みエラー:', e);
+          alert('管理者パスワードの読み込みに失敗しました。');
+        }
+      }
+
+      // 全データ読み込み
+      function loadAllData(highStressOnly = false) {
+        try {
+          let html = "<table border='1' style='width:100%;border-collapse:collapse;'>" +
+                     "<tr><th>会社名</th><th>システム生成ID</th><th>年度</th><th>A合計</th><th>B合計</th><th>C合計</th><th>D合計</th><th>高ストレス</th><th>高ストレス理由</th><th>回答日時</th></tr>";
+          let dataList = [];
+          for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (key.startsWith("stress_")) {
+              const item = JSON.parse(localStorage.getItem(key));
+              if (!highStressOnly || item.highStress) {
+                dataList.push(item);
+              }
+            }
+          }
+
+          dataList.sort((a, b) => b.year - a.year || b.totalB - a.totalB);
+
+          const rows = [["会社名", "システム生成ID", "年度", "A合計", "B合計", "C合計", "D合計", "高ストレス", "高ストレス理由", "回答日時"]];
+          for (const item of dataList) {
+            const highStress = item.highStress ? 'はい' : 'いいえ';
+            html += `<tr><td>${item.company}</td><td>${item.anonymousID}</td><td>${item.year}</td><td>${item.totalA}</td><td>${item.totalB}</td><td>${item.totalC}</td><td>${item.totalD}</td><td>${highStress}</td><td>${item.highStressReason || ''}</td><td>${item.timestamp}</td></tr>`;
+            rows.push([item.company, item.anonymousID, item.year, item.totalA, item.totalB, item.totalC, item.totalD, highStress, item.highStressReason || '', item.timestamp]);
+          }
+          html += "</table>";
+
+          html += "<h3>システム生成IDごとの比較</h3>";
+          const anonymousIDs = [...new Set(dataList.map(item => item.anonymousID))];
+          for (const id of anonymousIDs) {
+            const userData = dataList.filter(item => item.anonymousID === id).sort((a, b) => a.year - b.year);
+            if (userData.length > 1) {
+              html += `<h4>${id}</h4>`;
+              html += "<table border='1' style='width:100%;border-collapse:collapse;'>" +
+                      "<tr><th>年度</th><th>A合計</th><th>B合計</th><th>C合計</th><th>D合計</th><th>高ストレス</th></tr>";
+              for (const item of userData) {
+                const highStress = item.highStress ? '<span class="high-stress">はい</span>' : 'いいえ';
+                html += `<tr><td>${item.year}</td><td>${item.totalA}</td><td>${item.totalB}</td><td>${item.totalC}</td><td>${item.totalD}</td><td>${highStress}</td></tr>`;
+              }
+              html += "</table>";
+            }
+          }
+
+          masterResults.innerHTML = html;
+
+          document.getElementById('exportAllCSV').onclick = () => {
+            try {
+              exportToCSV(rows, `全会社_ストレスチェック結果.csv`);
+            } catch (e) {
+              console.error('全データCSVエクスポートエラー:', e);
+              alert('CSVのエクスポートに失敗しました。');
+            }
+          };
+        } catch (e) {
+          console.error('全データ読み込みエラー:', e);
+          alert('データの読み込みに失敗しました。');
+        }
+      }
+
+      document.getElementById('viewMapping').addEventListener('click', () => {
+        authModal.classList.remove('hidden');
+        authTitle.textContent = '管理者パスワード認証（マッピング表示）';
+        authMode = 'viewMapping';
+        authForm.dataset.company = currentCompany;
+      });
+
+      document.getElementById('viewAdminPasswords').addEventListener('click', () => {
+        authModal.classList.remove('hidden');
+        authTitle.textContent = 'マスターパスワード認証（パスワード一覧表示）';
+        authMode = 'viewAdminPasswords';
+      });
+
+      // 認証処理
+      authForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        try {
+          const password = document.getElementById('authPassword').value.trim();
+          const hashedInput = await hashPassword(password);
+
+          if (authMode === 'viewMapping' || authMode === 'exportMappingCSV') {
+            const company = authForm.dataset.company;
+            const savedPass = localStorage.getItem(`adminpass_${company}`);
+            if (hashedInput !== savedPass) {
+              alert('管理者パスワードが正しくありません。');
+              return;
+            }
+            authModal.classList.add('hidden');
+            if (authMode === 'viewMapping') {
+              loadMappingData(company);
+            } else {
+              const mappingList = [];
+              for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key.startsWith(`mapping_${company}_`)) {
+                  mappingList.push(JSON.parse(localStorage.getItem(key)));
+                }
+              }
+              const rows = [["システム生成ID", "企業発行ID", "登録日時"]];
+              for (const item of mappingList) {
+                rows.push([item.anonymousID, item.username, item.timestamp]);
+              }
+              exportToCSV(rows, `${company}_anonymous_mapping.csv`);
+            }
+          } else if (authMode === 'viewAdminPasswords' || authMode === 'exportAdminPasswordsCSV') {
+            if (password !== 'masterpass') {
+              alert('マスターパスワードが正しくありません。');
+              return;
+            }
+            authModal.classList.add('hidden');
+            if (authMode === 'viewAdminPasswords') {
+              loadAdminPasswords();
+            } else {
+              const passwordList = [];
+              for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key.startsWith('adminpass_')) {
+                  const company = key.replace('adminpass_', '');
+                  const passwordHash = localStorage.getItem(key);
+                  const timestamp = localStorage.getItem(`adminpass_timestamp_${company}`) || '不明';
+                  passwordList.push({ company, passwordHash, timestamp });
+                }
+              }
+              const rows = [["会社名", "管理者パスワード（ハッシュ）", "最終更新日時"]];
+              for (const item of passwordList) {
+                rows.push([item.company, item.passwordHash, item.timestamp]);
+              }
+              exportToCSV(rows, `管理者パスワード一覧.csv`);
+            }
+          }
+        } catch (e) {
+          console.error('認証エラー:', e);
+          alert('認証に失敗しました。');
+        }
+      });
+
+      document.getElementById('cancelAuth').addEventListener('click', () => {
+        authModal.classList.add('hidden');
+        authMode = '';
+      });
+
+      document.getElementById('filterHighStress')?.addEventListener('click', () => {
+        loadAdminData(currentCompany, true);
+      });
+
+      document.getElementById('filterHighStressMaster')?.addEventListener('click', () => {
+        loadAllData(true);
+      });
+    });
+  </script>
+</body>
+</html>
